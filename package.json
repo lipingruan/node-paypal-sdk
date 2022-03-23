@@ -1,0 +1,22 @@
+{
+  "name": "@lipingruan/node-paypal-sdk",
+  "version": "0.0.1",
+  "description": "nodejs paypal sdk",
+  "main": "paypal.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lipingruan/node-paypal-sdk.git"
+  },
+  "author": "lipingruan",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/lipingruan/node-paypal-sdk/issues"
+  },
+  "homepage": "https://github.com/lipingruan/node-paypal-sdk#readme"
+}
