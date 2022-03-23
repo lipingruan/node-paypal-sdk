@@ -15,8 +15,10 @@ module.exports = class Paypal extends EventEmitter {
 
     #store = {
         token: '',
+
         // token 过期时间
         tokenExpires: 0,
+
         // token 获取中
         tokenUpdating: false,
     }
@@ -27,6 +29,15 @@ module.exports = class Paypal extends EventEmitter {
         sandbox: true,
         clientId: '',
         clientSecret: '',
+
+        // 店铺名称
+        brandName: '',
+
+        /**
+         * 货币类型, USD:美元
+         * @type {string}
+         */
+        currencyCode: 'USD',
     }
 
 
@@ -64,7 +75,9 @@ module.exports = class Paypal extends EventEmitter {
 
     urls = {
         [secured]: this.urlPrefix,
-        get authentication ( ) { return this[secured] + '/v1/oauth2/token' }
+        get authentication ( ) { return this[secured] + '/v1/oauth2/token' },
+        get createOrder ( ) { return this[secured] + '/v2/checkout/orders' },
+        get captureOrder ( ) { return this[secured] + '/v2/checkout/orders/${id}/capture' }
     }
 
 
@@ -134,5 +147,89 @@ module.exports = class Paypal extends EventEmitter {
 
             throw error
         }
+    }
+
+
+
+    async genHeaders ( ) {
+
+        const token = await this.getToken ( )
+
+        const headers = {
+            Authorization: 'Bearer ' + token
+        }
+
+        return headers
+    }
+
+
+
+    async createOrder ( params ) {
+
+        const { orderId, amount, description, attach, returnUrl, cancelUrl } = params
+
+        const { brandName, currencyCode } = this.#config
+
+        const purchase = {
+            reference_id: orderId,
+            amount: {
+                currency_code: currencyCode,
+                value: amount.toFixed ( 2 ),
+            },
+            description,
+        }
+
+        if ( attach ) purchase.custom_id = 'string' === typeof attach ? attach : JSON.stringify ( attach )
+
+        const body = {
+            intent: 'CAPTURB',
+            purchase_units: [ purchase ],
+            application_context: {
+                brand_name: brandName,
+                return_url: returnUrl,
+                cancel_url: cancelUrl,
+            }
+        }
+
+        const { body: { details, id, links } } = await IO.http ( { 
+            url: this.urls.createOrder, 
+            headers: await this.genHeaders ( ) 
+        }, body )
+
+        if ( details ) {
+
+            const [ { issue } ] = details
+
+            throw new Error ( issue )
+        }
+
+        const [ { href: paymentURL } ] = links.filter ( link => link.rel === 'approve' )
+
+        return {
+            id, paymentURL
+        }
+    }
+
+
+
+    async captureOrder ( id ) {
+
+        const { body } = await IO.http ( { 
+            url: this.urls.captureOrder.replace ( '${id}', id ), 
+            headers: await this.genHeaders ( ) 
+        }, { } )
+
+        const { status, details } = body
+
+        if ( details ) {
+
+            const [ { issue } ] = details
+
+            throw new Error ( issue )
+        }
+
+        if ( status !== 'COMPLETED' ) throw new Error ( 'ORDER_NOT_COMPLETED' )
+
+        return body
     }
 }
