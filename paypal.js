@@ -5,7 +5,8 @@ const crypto = require ( 'crypto' )
 
 const IO = require ( './util/io' )
 
-const secured = Symbol ( 'secured' )
+const securedA = Symbol ( 'apiURL' )
+const securedW = Symbol ( 'wwwURL' )
 
 
 
@@ -67,7 +68,7 @@ module.exports = class Paypal extends EventEmitter {
 
 
 
-    get urlPrefix ( ) {
+    get apiURLPrefix ( ) {
 
         return this.#config.sandbox ?
             'https://api-m.sandbox.paypal.com' :
@@ -76,16 +77,27 @@ module.exports = class Paypal extends EventEmitter {
 
 
 
+    get wwwURLPrefix ( ) {
+
+        return this.#config.sandbox ?
+            'https://www.sandbox.paypal.com' :
+            'https://www.paypal.com'
+    }
+
+
+
     urls = {
-        [secured]: this.urlPrefix,
-        get authentication ( ) { return this[secured] + '/v1/oauth2/token' },
-        get createOrder    ( ) { return this[secured] + '/v2/checkout/orders' },
-        get getOrder       ( ) { return this[secured] + '/v2/checkout/orders/${id}' },
-        get captureOrder   ( ) { return this[secured] + '/v2/checkout/orders/${id}/capture' },
-        get getCapture     ( ) { return this[secured] + '/v2/payments/captures/${id}' },
-        get refundCapture  ( ) { return this[secured] + '/v2/payments/captures/${id}/refund' },
-        get getRefunds     ( ) { return this[secured] + '/v2/payments/refunds/${id}' },
-        get webhookVerify  ( ) { return this[secured] + '/v1/notifications/verify-webhook-signature' },
+        [securedA]: this.apiURLPrefix,
+        [securedW]: this.wwwURLPrefix,
+        get authentication ( ) { return this[securedA] + '/v1/oauth2/token' },
+        get createOrder    ( ) { return this[securedA] + '/v2/checkout/orders' },
+        get getOrder       ( ) { return this[securedA] + '/v2/checkout/orders/${id}' },
+        get captureOrder   ( ) { return this[securedA] + '/v2/checkout/orders/${id}/capture' },
+        get getCapture     ( ) { return this[securedA] + '/v2/payments/captures/${id}' },
+        get refundCapture  ( ) { return this[securedA] + '/v2/payments/captures/${id}/refund' },
+        get getRefunds     ( ) { return this[securedA] + '/v2/payments/refunds/${id}' },
+        get webhookVerify  ( ) { return this[securedA] + '/v1/notifications/verify-webhook-signature' },
+        get payment        ( ) { return this[securedW] + '/checkoutnow?token=${id}' },
     }
 
 
@@ -365,5 +377,12 @@ module.exports = class Paypal extends EventEmitter {
         } )
 
         return body
+    }
+
+
+
+    getPaymentURL ( id ) {
+
+        return this.urls.payment.replace ( '${id}', id )
     }
 }
