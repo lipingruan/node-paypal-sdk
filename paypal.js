@@ -315,6 +315,17 @@ module.exports = class Paypal extends EventEmitter {
             headers: await this.genHeaders ( )
         } )
 
+        const { details } = body
+
+        if ( details ) {
+
+            const [ { issue } ] = details
+
+            if ( issue === 'INVALID_RESOURCE_ID' ) return null
+
+            throw new Error ( issue )
+        }
+
         return body
     }
 
@@ -331,6 +342,17 @@ module.exports = class Paypal extends EventEmitter {
             url: this.urls.getCapture.replace ( '${id}', id ),
             headers: await this.genHeaders ( )
         } )
+
+        const { details } = body
+
+        if ( details ) {
+
+            const [ { issue } ] = details
+
+            if ( issue === 'INVALID_RESOURCE_ID' ) return null
+
+            throw new Error ( issue )
+        }
 
         return body
     }
@@ -359,6 +381,15 @@ module.exports = class Paypal extends EventEmitter {
             headers: await this.genHeaders ( )
         }, params )
 
+        const { details } = body
+
+        if ( details ) {
+
+            const [ { issue } ] = details
+
+            throw new Error ( issue )
+        }
+
         return body
     }
 
@@ -375,6 +406,17 @@ module.exports = class Paypal extends EventEmitter {
             url: this.urls.getRefunds.replace ( '${id}', id ),
             headers: await this.genHeaders ( )
         } )
+
+        const { details } = body
+
+        if ( details ) {
+
+            const [ { issue } ] = details
+
+            if ( issue === 'INVALID_RESOURCE_ID' ) return null
+
+            throw new Error ( issue )
+        }
 
         return body
     }

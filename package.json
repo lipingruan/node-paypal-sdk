@@ -1,7 +1,7 @@
 {
   "name": "@lipingruan/node-paypal-sdk",
   "private": false,
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "nodejs paypal sdk",
   "main": "paypal.js",
   "directories": {
